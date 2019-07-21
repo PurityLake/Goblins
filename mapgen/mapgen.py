@@ -1,4 +1,5 @@
 import random
+from . import utils
 
 class MapLayer(object):
     def __init__(self, width, length):
@@ -24,41 +25,17 @@ class MapGenPerlin(object):
 
     def create_perlin_noise(self):
         return self._generate_perlin_noise(self._generate_white_noise(), 6)
-
-    def _init_2d_array(self, w, h):
-        arr = []
-        for _ in range(h):
-            line = []
-            for _ in range(w):
-                line.append(0.0)
-            arr.append(line)
-        return arr
-    
-    def _init_3d_array(self, w, h, l):
-        arr = []
-        for _ in range(l):
-            area = []
-            for _ in range(h):
-                line = []
-                for _ in range(w):
-                    line.append(0.0)
-                area.append(line)
-            arr.append(area)
-        return arr
-    
-    def _interpolate(self, x0, x1, alpha):
-        return x0 * (1 - alpha) + alpha * x1
     
     def _generate_white_noise(self):
         #random.seed(0)
-        base_noise = self._init_2d_array(self.width, self.length)
+        base_noise = utils.init_2d_array(self.width, self.length)
         for y in range(self.length):
             for x in range(self.width):
                 base_noise[y][x] = random.random() % 1
         return base_noise
     
     def _generate_smooth_noise(self, base_noise, octave):
-        smooth_noise = self._init_2d_array(self.width, self.length)
+        smooth_noise = utils.init_2d_array(self.width, self.length)
         sample_period = 1 << octave
         sample_frequency = 1.0  / sample_period
 
@@ -74,21 +51,21 @@ class MapGenPerlin(object):
                 vertical_blend = (j + sample_j0) * sample_frequency
 
                 # blend top two corners
-                top = self._interpolate(base_noise[sample_i0][sample_j0],
+                top = utils.interpolate(base_noise[sample_i0][sample_j0],
                     base_noise[sample_i1][sample_j0], horizontal_blend)
 
                 # blend bottom two cornder
-                bottom = self._interpolate(base_noise[sample_i0][sample_j1],
+                bottom = utils.interpolate(base_noise[sample_i0][sample_j1],
                     base_noise[sample_i1][sample_j1], horizontal_blend)
 
                 # final belnd
-                smooth_noise[j][i] = self._interpolate(top, bottom, vertical_blend)
+                smooth_noise[j][i] = utils.interpolate(top, bottom, vertical_blend)
         return smooth_noise
     
     def _generate_perlin_noise(self, base_noise, octave_count):
-        smooth_noise = self._init_3d_array(self.width, self.length, octave_count)
-        persitence = 0.9
-        perlin_noise = self._init_2d_array(self.width, self.length)
+        smooth_noise = utils.init_3d_array(self.width, self.length, octave_count)
+        persitence = 1.2
+        perlin_noise = utils.init_2d_array(self.width, self.length)
         amplitude = 1.0
         total_amplitude = 0.0
         

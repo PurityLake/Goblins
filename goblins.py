@@ -41,16 +41,35 @@ def main(args):
     while running:
         if first:
             if test_noise:
-                mgp = MapGenPerlin(200, 200, 100)
-                noise = []
-                for line in mgp.noise:
-                    new_line = []
-                    for c in line:
-                        new_c = int(abs(c)) % 255 * 2
-                        new_line.append((new_c, new_c, new_c))
-                    noise.append(new_line)
-                surface = pygame.surfarray.make_surface(np.array(noise))
-                screen.blit(surface, (0, 0))
+                mgp = MapGenPerlin(30, 30, 100)
+                m = max(max(line) for line in mgp.noise)
+                letters = []
+                for l in mgp.noise:
+                    line = []
+                    for pix in l:
+                        val = pix % 255 / 255
+                        if val > 0.7:
+                            line.append("^")
+                        else:
+                            line.append(".")
+                    letters.append(line)
+                letters = [[font.render(i, True, [255, 255, 255]) for i in line] for line in letters]
+                x, y = 8, 0
+                for line in letters:
+                    for letter in line:
+                        screen.blit(letter, (x, y))
+                        x += 18
+                    x = 8
+                    y += 18
+                #noise = []
+                #for i in mgp.noise:
+                #    line = []
+                #    for j in i:
+                #        val = j % 255
+                #        line.append((val, val, val))
+                #    noise.append(line)
+                #surface = pygame.surfarray.make_surface(np.array(noise))
+                #screen.blit(surface, (0, 0))
                 pygame.display.flip()
             elif test_astar:
                 test_map = pathfinding.MapPathfinding.test_pathfinding_map()
