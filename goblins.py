@@ -3,7 +3,7 @@ from random import choice
 import math
 import sys
 from ai import pathfinding
-from mapgen.mapgen import MapGenPerlin
+from mapgen.mapgen import Map, MapGenPerlin
 import numpy as np
 
 map_choices = [".", "#", "g", ",", "a"]
@@ -41,35 +41,11 @@ def main(args):
     while running:
         if first:
             if test_noise:
-                mgp = MapGenPerlin(30, 30, 100)
-                m = max(max(line) for line in mgp.noise)
-                letters = []
-                for l in mgp.noise:
-                    line = []
-                    for pix in l:
-                        val = pix % 255 / 255
-                        if val > 0.7:
-                            line.append("^")
-                        else:
-                            line.append(".")
-                    letters.append(line)
-                letters = [[font.render(i, True, [255, 255, 255]) for i in line] for line in letters]
-                x, y = 8, 0
-                for line in letters:
-                    for letter in line:
-                        screen.blit(letter, (x, y))
-                        x += 18
-                    x = 8
-                    y += 18
-                #noise = []
-                #for i in mgp.noise:
-                #    line = []
-                #    for j in i:
-                #        val = j % 255
-                #        line.append((val, val, val))
-                #    noise.append(line)
-                #surface = pygame.surfarray.make_surface(np.array(noise))
-                #screen.blit(surface, (0, 0))
+                test_map = Map(100, 100, MapGenPerlin, font)
+                if "draw_noise" in args:
+                    test_map.draw_noise(screen)
+                else:
+                    test_map.draw(screen, 0, 0)
                 pygame.display.flip()
             elif test_astar:
                 test_map = pathfinding.MapPathfinding.test_pathfinding_map()
