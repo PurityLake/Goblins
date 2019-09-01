@@ -1,5 +1,5 @@
 # Goblins
-Fantasy world simulator
+Fantasy world simulator writen in CPython 3.7
 
 **Environment Setup**
 
