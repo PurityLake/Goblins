@@ -82,7 +82,7 @@ class MapPathfinding(object):
         prev = current = open_set[0]
         gx = 0
         running = True
-        while running and len(open_set) > 0 or (current.x, current.y) != b:
+        while running and len(open_set) > 0 or current != None and (current.x, current.y) != b:
             if (current.x, current.y) == b:
                 break
             closed_set.append(current)

@@ -4,13 +4,15 @@ import math
 import sys
 from ai import pathfinding
 from mapgen.mapgen import Map, MapGenPerlin
+import time
 
-map_choices = ["."]
+map_choices = [".", "#"]
 wall_choices = ["#"]
 font_size = 16
 font_padding = 2
 font_with_padding = font_size + font_padding
 max_floors = 3
+map_width, map_height = 30, 30
 
 
 def main(args):
@@ -25,9 +27,9 @@ def main(args):
     font = pygame.font.SysFont("Consolas", 16)
 
     floors = [
-        Map(20, 20, MapGenPerlin, font, map_choices),
-        Map(20, 20, MapGenPerlin, font, map_choices),
-        Map(20, 20, MapGenPerlin, font, map_choices)
+        Map(map_width, map_height, MapGenPerlin, font, map_choices),
+        Map(map_width, map_height, MapGenPerlin, font, map_choices),
+        Map(map_width, map_height, MapGenPerlin, font, map_choices)
     ]
     
     map3d = []
@@ -51,7 +53,7 @@ def main(args):
             map3d_blit.append(new_floor_blit)
             lower_floor += 1
 
-    test_map = Map(20, 20, MapGenPerlin, font, map_choices)
+    test_map = Map(map_width, map_height, MapGenPerlin, font, map_choices)
     game_map = map3d[curr_floor]
     blit_map = map3d_blit[curr_floor]
 
@@ -63,12 +65,11 @@ def main(args):
     while running:
         if first:
             if test_astar:
-                test_map = pathfinding.MapPathfinding.test_pathfinding_map()
                 mp = pathfinding.MapPathfinding(game_map)
                 start, end = None, None
                 for y, line in enumerate(game_map):
                     for x, c in enumerate(line):
-                        if c != "#":
+                        if c != "#" and c != None:
                             start = (x, y)
                             break
                     if start != None:
@@ -76,14 +77,14 @@ def main(args):
                             
                 for y, line in enumerate(game_map[::-1]):
                     for x, c in enumerate(line[::-1]):
-                        if c != "#":
-                            end = (19 - x, 19 - y)
+                        if c != "#" and c != None:
+                            end = (map_width - 1- x, map_height - 1 - y)
                             break
                     if end != None:
                         break
-
+                s = time.time()
                 path = mp.pathfind_from_a_to_b(start, end)
-                test_blit_map = [[font.render(i, True, [255, 255, 255]) for i in line] for line in test_map]
+                print(time.time() - s)
                 while path != None:
                     pygame.draw.rect(screen, [0, 255, 0], (path.x * font_with_padding + 4, path.y * font_with_padding, 16, 16))
                     path = path.prev
