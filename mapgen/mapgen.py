@@ -22,7 +22,7 @@ class MapGenPerlin(object):
 
     def _create_perlin_noise(self):
         """Generates a 2D array of perlin noise"""
-        return self._generate_perlin_noise(self._generate_white_noise(), 6)
+        return self._generate_perlin_noise(self._generate_white_noise(), 10)
     
     def _generate_white_noise(self):
         base_noise = utils.init_2d_array(self.width, self.height)
@@ -87,7 +87,7 @@ class MapGenPerlin(object):
         return perlin_noise
 
 class Map(object):
-    def __init__(self, width, height, gentype, font):
+    def __init__(self, width, height, gentype, font, map_choices):
         self.width = width
         self.height = height
         self.gentype = gentype
@@ -96,9 +96,10 @@ class Map(object):
         self.letters = []
         self.letters_rendered = []
         self.font = font
-        self._generate_map_data(font)
+        self.map_choices = map_choices
+        self._generate_map_data()
     
-    def _generate_map_data(self, font):
+    def _generate_map_data(self):
         map_gen = self.gentype(self.width, self.height)
         m = max(max(line) for line in map_gen.noise)
         for i, l in enumerate(map_gen.noise):
@@ -111,26 +112,24 @@ class Map(object):
                 if val > 0.7:
                     line.append("^")
                 else:
-                    line.append(".")
+                    line.append(random.choice(self.map_choices))
             self.letters.append(line)
             self.map_to_draw.append(line_to_draw)
         self.map_to_draw = np.array(self.map_to_draw)
-        self.letters_rendered = [[font.render(i, True, [255, 255, 255]) for i in line] for line in self.letters]
+        self.map_choices.append("^")
+        symbol_dict = dict()
+        for mc in self.map_choices:
+            symbol_dict[mc] = self.font.render(mc, True, [255, 255, 255])
+        self.letters_rendered = [[symbol_dict[i] for i in line] for line in self.letters]
     
-    def draw(self, screen, cursor_x, cursor_y, draw_x = -1, draw_y = -1):
-        if pygame.get_init():
-            if draw_x < 0 and draw_y < 0:
-                pygame.draw.rect(screen, [0, 255, 0], (cursor_x * 18, cursor_y * 18, 16, 16))
-                x, y = 8, 0
-                for line in self.letters_rendered:
-                    for c in line:
-                        screen.blit(c, (x, y))
-                        x += 18
-                    x = 0
-                    y += 18
-    
-    def draw_noise(self, screen, x=0, y=0):
+    def draw_noise(self, x=0, y=0):
         if pygame.get_init():
             if self.map_surface == None:
                 self.map_surface = pygame.surfarray.make_surface(self.map_to_draw)
             screen.blit(self.map_surface, (x, y))
+    
+    def get_symbol_map(self):
+        return self.letters
+
+    def get_symbol_blit_map(self):
+        return self.letters_rendered

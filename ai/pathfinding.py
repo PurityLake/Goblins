@@ -38,16 +38,16 @@ class MapPathfinding(object):
     def get_open_nodes(self, x, y):
         open = []
         if x - 1 >= 0:
-            if (self.area_map[y][x-1] != "#"):
+            if self.area_map[y][x-1] != "#":
                 open.append((x - 1, y))
         if x + 1 < len(self.area_map[0]):
-            if (self.area_map[y][x+1] != "#"):
+            if self.area_map[y][x+1] != "#":
                 open.append((x + 1, y))
         if y - 1 >= 0:
-            if (self.area_map[y-1][x] != "#"):
+            if self.area_map[y-1][x] != "#":
                 open.append((x, y - 1))
         if y + 1 < len(self.area_map):
-            if (self.area_map[y+1][x] != "#"):
+            if self.area_map[y+1][x] != "#":
                 open.append((x, y + 1))
         return open
 
