@@ -1,12 +1,12 @@
 import pygame
-from random import choice
+from random import choice, seed
 import math
 import sys
 from ai import pathfinding
 from mapgen.mapgen import Map, MapGenPerlin
 import time
 
-map_choices = [".", "#"]
+map_choices = [".", ".", ".", "#"]
 wall_choices = ["#"]
 font_size = 16
 font_padding = 2
@@ -16,6 +16,7 @@ map_width, map_height = 30, 30
 
 
 def main(args):
+    seed(4)
     curr_floor = 0
     test_astar = "pathfinding" in args
     cursor_x, cursor_y = 0, 0
@@ -49,6 +50,9 @@ def main(args):
                     if any(each_floor):
                         new_floor[i][j] = None
                         new_floor_blit[i][j] = None
+                    elif not all(each_floor) and new_floor[i][j] == None:
+                        new_floor[i][j] = '.'
+                        new_floor_blit[i][j] = font.render('.', True, [255, 255, 255])
             map3d.append(new_floor)
             map3d_blit.append(new_floor_blit)
             lower_floor += 1
@@ -57,91 +61,70 @@ def main(args):
     game_map = map3d[curr_floor]
     blit_map = map3d_blit[curr_floor]
 
+    mp = None
+    path = None
+    if test_astar:
+        mp = pathfinding.MapPathfinding(map3d, map_width, map_height, 3)
+        start, end = None, None
+        for y, line in enumerate(game_map):
+            for x, c in enumerate(line):
+                if c != "#" and c != None:
+                    start = (x, y, 0)
+                    break
+            if start != None:
+                break     
+        for y, line in enumerate(game_map[::-1]):
+            for x, c in enumerate(line[::-1]):
+                if c != "#" and c != None:
+                    end = (map_width - 1 - x, map_height - 1 - y, 0)
+                    break
+            if end != None:
+                break
+        path = mp.pathfind_from_a_to_b(start, end)
+
     running = True
-    dirty = False
-    first = True
+    dirty = True
     flip = False
     curr_time = 0
     while running:
-        if first:
+        if dirty:
+            screen.fill((0,0,0))
             if test_astar:
-                mp = pathfinding.MapPathfinding(game_map)
-                start, end = None, None
-                for y, line in enumerate(game_map):
-                    for x, c in enumerate(line):
-                        if c != "#" and c != None:
-                            start = (x, y)
-                            break
-                    if start != None:
-                        break
-                            
-                for y, line in enumerate(game_map[::-1]):
-                    for x, c in enumerate(line[::-1]):
-                        if c != "#" and c != None:
-                            end = (map_width - 1- x, map_height - 1 - y)
-                            break
-                    if end != None:
-                        break
-                s = time.time()
-                path = mp.pathfind_from_a_to_b(start, end)
-                print(time.time() - s)
-                while path != None:
-                    pygame.draw.rect(screen, [0, 255, 0], (path.x * font_with_padding + 4, path.y * font_with_padding, 16, 16))
-                    path = path.prev
-                x, y = 8, 0
-                for i, line in enumerate(blit_map):
-                    for j, c in enumerate(line):
-                        if c != None:
-                            screen.blit(c, (x, y))
-                        x += font_with_padding
-                    x = 8
-                    y += font_with_padding
-                pygame.display.flip()
-                curr_time = pygame.time.get_ticks()
-            else:
-                pygame.draw.rect(screen, [0, 255, 0], (cursor_x * font_with_padding + 4, cursor_y * font_with_padding, 16, 16))
-                x, y = 8, 0
-                for line in blit_map:
-                    for c in line:
-                        if c != None:
-                            screen.blit(c, (x, y))
-                        x += font_with_padding
-                    x = 8
-                    y += font_with_padding
+                temppath = path
+                while temppath != None:
+                    if temppath.z != curr_floor:
+                        pygame.draw.rect(screen, [255, 0, 0], (temppath.x * font_with_padding + 4, temppath.y * font_with_padding, 16, 16))
+                    else:
+                        pygame.draw.rect(screen, [0, 255, 0], (temppath.x * font_with_padding + 4, temppath.y * font_with_padding, 16, 16))
+                    temppath = temppath.prev
+            x, y = 8, 0
+            for line in blit_map:
+                for c in line:
+                    if c != None:
+                        screen.blit(c, (x, y))
+                    x += font_with_padding
+                x = 8
+                y += font_with_padding
+            curr_time = pygame.time.get_ticks()
+            dirty = False
+        if flip:
+            if pygame.time.get_ticks() - curr_time > 500:
+                pygame.draw.rect(screen, [0, 0, 0], (cursor_x * font_with_padding + 4, cursor_y * font_with_padding, 16, 16))
+                tile = blit_map[cursor_y][cursor_x]
+                if tile != None:
+                    screen.blit(blit_map[cursor_y][cursor_x], (cursor_x * font_with_padding + 9, cursor_y * font_with_padding))
+                flip = not flip
                 pygame.display.flip()
                 curr_time = pygame.time.get_ticks()
         else:
-            if not test_astar:
-                if dirty:
-                    screen.fill((0,0,0))
-                    x, y = 8, 0
-                    for line in blit_map:
-                        for c in line:
-                            if c != None:
-                                screen.blit(c, (x, y))
-                            x += font_with_padding
-                        x = 8
-                        y += font_with_padding
-                    curr_time = pygame.time.get_ticks()
-                    dirty = False
-                if flip:
-                    if pygame.time.get_ticks() - curr_time > 500:
-                        pygame.draw.rect(screen, [0, 0, 0], (cursor_x * font_with_padding + 4, cursor_y * font_with_padding, 16, 16))
-                        tile = blit_map[cursor_y][cursor_x]
-                        if tile != None:
-                            screen.blit(blit_map[cursor_y][cursor_x], (cursor_x * font_with_padding + 9, cursor_y * font_with_padding))
-                        flip = not flip
-                        pygame.display.flip()
-                        curr_time = pygame.time.get_ticks()
-                else:
-                    if pygame.time.get_ticks() - curr_time > 500:
-                        pygame.draw.rect(screen, [0, 255, 0], (cursor_x * font_with_padding + 4, cursor_y * font_with_padding, 16, 16))
-                        tile = blit_map[cursor_y][cursor_x]
-                        if tile != None:
-                            screen.blit(blit_map[cursor_y][cursor_x], (cursor_x * font_with_padding + 9, cursor_y * font_with_padding))
-                        flip = not flip
-                        pygame.display.flip()
-                        curr_time = pygame.time.get_ticks()
+            if pygame.time.get_ticks() - curr_time > 500:
+                pygame.draw.rect(screen, [0, 255, 0], (cursor_x * font_with_padding + 4, cursor_y * font_with_padding, 16, 16))
+                tile = blit_map[cursor_y][cursor_x]
+                if tile != None:
+                    screen.blit(blit_map[cursor_y][cursor_x], (cursor_x * font_with_padding + 9, cursor_y * font_with_padding))
+                flip = not flip
+                pygame.display.flip()
+                curr_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
