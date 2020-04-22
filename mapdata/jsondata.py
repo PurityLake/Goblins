@@ -1,3 +1,9 @@
+"""
+jsondata:
+This module encapsulates the builtin json module providing appropriate error handling
+instead of having it clutter another class.
+"""
+
 import json
 
 class JSONData(object):

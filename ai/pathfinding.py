@@ -1,14 +1,22 @@
+"""
+pathfinding
+This module simply provides a pathfinding functionality for any entity that can move.
+This uses the a-star method of finding a path.
+"""
+
 import math
 
 class PathfindingNode(object):
-    """Node used by MapPathfinding
-
-    Parameters
-    pos(tuple(int, int)): the position on the map
-
-    prev(PathfindingNode): the node prior to this one
-
-    cost(float): the cost before g(x)
+    """
+    PathfindingNode
+    Node used by MapPathfinding used in a linked list to hold one point in a path
+    =======
+    Data Members:
+    x: x coordinate
+    y: y coordinate
+    z: z coordinate
+    cost: cost g(x) + h(x)
+    prev: the previous node in the path
     """
 
     def __init__(self, pos, prev, cost):
@@ -32,13 +40,32 @@ class PathfindingNode(object):
         return False
 
 class MapPathfinding(object):
+    """
+    MapPathfinding:
+    A class that encapsuates the pathfinding of the AI. Uses a simple A-star method
+    of finding an optimal path to from a given point to another point. Using
+    `pathfind_from_a_to_b` a path is from a to b but in reverse so it is advised to 
+    reverse the origin point and destination point.
+    This class can be reused and does not have to be created more than once as long as
+    the same object is used for the map.
+    ======
+    Data Members:
+    width: width of the crosssection of the map (max x coord).
+    length: length of the crosssection of the map (max y coord).
+    height: how many crosssections are in the level (max z coord).
+    area_map: the 3-dimensional list representing the map.
+    ======
+    Methods:
+    pathfind_from_a_to_b: find the optimal path from a to b and returns a `PathfindNode`
+                          containing the reverse path in a linked list i.e. from b to a.
+    """
     def __init__(self, area_map, width, length, height):
         self.width = width
         self.length = length
         self.height = height
         self.area_map = area_map
     
-    def get_open_nodes(self, x, y, z):
+    def _get_open_nodes(self, x, y, z):
         if z >= self.height:
             return []
 
@@ -100,19 +127,12 @@ class MapPathfinding(object):
         
         return open_list
 
-    def get_cost_of_node(self, current, goal):
+    def _get_cost_of_node(self, current, goal):
         x, y, z = current
         goalx, goaly, goalz = goal
         return math.sqrt(math.pow(goalx - x, 2) + math.pow(goaly - y, 2) + math.pow(goalz - z, 2))
-    
-    def beside_current(self, current, x, y):
-        if current.x + 1 == x or current.x - 1 == x:
-            return current.y == y
-        if current.y + 1 == y or current.y - 1 == y:
-            return current.x == x
-        return False
 
-    def lowest_cost(self, current, open_set):
+    def _lowest_cost(self, current, open_set):
         lowest = 100000000
         node = None
         for i in open_set:
@@ -135,8 +155,8 @@ class MapPathfinding(object):
             if (current.x, current.y, current.z) == b:
                 break
             closed_set.append(current)
-            new_nodes = self.get_open_nodes(current.x, current.y, current.z)
-            new_nodes_costs = [self.get_cost_of_node((node[0], node[1], node[2]), b) for node in new_nodes]
+            new_nodes = self._get_open_nodes(current.x, current.y, current.z)
+            new_nodes_costs = [self._get_cost_of_node((node[0], node[1], node[2]), b) for node in new_nodes]
             temp = []
             for n, c in zip(new_nodes, new_nodes_costs):
                 if c == 0:
@@ -156,6 +176,6 @@ class MapPathfinding(object):
                 open_set.extend(new_nodes)
                 open_set.remove(current)
                 prev = current
-                current = self.lowest_cost(current, open_set)
+                current = self._lowest_cost(current, open_set)
                 gx += 1
         return current
