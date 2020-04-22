@@ -47,55 +47,55 @@ class MapPathfinding(object):
         can_go_down = z - 1 >= 0
         if x - 1 >= 0:
             node = self.area_map[z][y][x-1]
-            if node.is_none():
+            if not node.can_walk():
                 if can_go_up:
                     up_node = self.area_map[z+1][y][x-1]
-                    if not up_node.is_none() and up_node.ch != "#":
+                    if not up_node.can_walk():
                         open_list.append((x - 1, y, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y][x-1]
-                    if not down_node.is_none() and down_node.ch != "#":
+                    if down_node.can_walk():
                         open_list.append((x - 1, y, z - 1))
-            elif node.ch != "#":
+            else:
                 open_list.append((x - 1, y, z))
         if x + 1 < self.width:
             node = self.area_map[z][y][x+1]
-            if node.is_none():
+            if not node.can_walk():
                 if can_go_up:
                     up_node = self.area_map[z+1][y][x+1]
-                    if not up_node.is_none() and up_node.ch != "#":
+                    if up_node.can_walk():
                         open_list.append((x + 1, y, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y][x+1]
-                    if not down_node.is_none() and down_node.ch != "#":
+                    if down_node.can_walk:
                         open_list.append((x + 1, y, z - 1))
-            elif node.ch != "#":
+            else:
                 open_list.append((x + 1, y, z))
         if y - 1 >= 0:
             node = self.area_map[z][y-1][x]
-            if node.is_none():
+            if not node.can_walk():
                 if can_go_up:
                     up_node = self.area_map[z+1][y-1][x]
-                    if not up_node.is_none() and up_node.ch != "#":
+                    if up_node.can_walk:
                         open_list.append((x, y - 1, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y-1][x]
-                    if not down_node.is_none() and down_node.ch != "#":
+                    if down_node.can_walk:
                         open_list.append((x, y - 1, z - 1))
-            elif node.ch != "#":
+            else:
                 open_list.append((x, y - 1, z))
         if y + 1 < self.length:
             node = self.area_map[z][y+1][x]
-            if node.is_none():
+            if not node.can_walk():
                 if can_go_up:
                     up_node = self.area_map[z+1][y+1][x]
-                    if not up_node.is_none() and up_node.ch != "#":
+                    if up_node.can_walk:
                         open_list.append((x, y + 1, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y+1][x]
-                    if not down_node.is_none() and down_node.ch != "#":
+                    if down_node.can_walk:
                         open_list.append((x, y + 1, z - 1))
-            elif node.ch != "#":
+            else:
                 open_list.append((x, y + 1, z))
         
         return open_list

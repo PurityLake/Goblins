@@ -87,12 +87,13 @@ class MapGenPerlin(object):
         return perlin_noise
 
 class MapNode(object):
-    def __init__(self, ch, width, height, surf=None, bgcolor=(0, 0, 0)):
+    def __init__(self, ch, width, height, walk, surf=None, bgcolor=(0, 0, 0)):
         self.ch = ch
         self.width = width
         self.height = height
         self.halfw = width / 2
         self.halfh = height / 2
+        self.walk = walk
         self.surf = surf
         self.bgcolor = bgcolor
         self.surfw = 0
@@ -122,9 +123,12 @@ class MapNode(object):
         if not self.is_none():
             screen.blit(self.surf, (x - self.halfsurfw, y))
 
+    def can_walk(self):
+        return self.walk
+
 
 class Map(object):
-    def __init__(self, width, height, gentype, font, fontsize, map_choices):
+    def __init__(self, width, height, gentype, font, fontsize, gamedata, chance_empty):
         self.width = width
         self.height = height
         self.gentype = gentype
@@ -134,10 +138,16 @@ class Map(object):
         self.letters_rendered = []
         self.font = font
         self.fontsize = fontsize
-        self.map_choices = map_choices
+        self.gamedata = gamedata
+        self.chance_empty = chance_empty
         self._generate_map_data()
     
     def _generate_map_data(self):
+        tiles = self.gamedata["tiles"]
+        tile_types = self.gamedata.get_tile_types()
+        for i in range(len(tile_types)):
+            for j in range(0, tiles[tile_types[i]].chance - 1):
+                tile_types.append(tile_types[i])
         map_gen = self.gentype(self.width, self.height)
         m = max(max(line) for line in map_gen.noise)
         for i, l in enumerate(map_gen.noise):
@@ -147,24 +157,23 @@ class Map(object):
                 val = pix % 255 / 255
                 v = pix % 255
                 line_to_draw.append((v, v, v))
-                if val > 0.5:
-                    #line.append(None)
-                    line.append(MapNode(" ", self.fontsize, self.fontsize))
+                if val < self.chance_empty:
+                    line.append(MapNode(" ", self.fontsize, self.fontsize, False))
                 else:
-                    #line.append(random.choice(self.map_choices))
-                    line.append(MapNode(random.choice(self.map_choices), self.fontsize, self.fontsize))
+                    t = tiles[random.choice(tile_types)]
+                    line.append(MapNode(t.char, self.fontsize, self.fontsize, t.walk, bgcolor=t.bgcolor))
             self.letters.append(line)
             self.map_to_draw.append(line_to_draw)
         self.map_to_draw = np.array(self.map_to_draw)
         symbol_dict = dict()
-        for mc in self.map_choices:
-            symbol_dict[mc] = self.font.render(mc, True, [255, 255, 255])
+        for mc in tile_types:
+            tile = self.gamedata["tiles"][mc]
+            symbol_dict[tile.char] = self.font.render(tile.char, True, tile.color)
         symbol_dict[None] = None
         for line in self.letters:
             for i in line:
                 if i.ch != " ":
                     i.set_surf(symbol_dict[i.ch])
-        #self.letters_rendered = [[symbol_dict[i.ch] for i in line] for line in self.letters]
     
     def draw_noise(self, screen, x=0, y=0):
         if pygame.get_init():

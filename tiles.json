@@ -1,0 +1,17 @@
+{
+    "types": ["grass", "stone"],
+    "grass": {
+        "char": ".",
+        "color": [0, 255, 0],
+        "bgcolor": [0, 0, 0],
+        "walk": true,
+        "chance": 7
+    },
+    "stone": {
+        "char": "#",
+        "color": [0, 0, 0],
+        "bgcolor": [100, 100, 100],
+        "walk": false,
+        "chance": 3
+    }
+}

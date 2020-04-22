@@ -5,9 +5,8 @@ import sys
 from ai import pathfinding
 from mapgen.mapgen import Map, MapGenPerlin
 import time
+from mapdata.gamedata import GameData
 
-map_choices = [".", ".", ".", "#"]
-wall_choices = ["#"]
 font_size = 16
 font_padding = 2
 font_with_padding = font_size
@@ -25,21 +24,22 @@ def move_cursor(screen, game_map, cursor_x, cursor_y, width, height, dx=0, dy=0)
     return cursor_x, cursor_y
 
 def main(args):
+    test_astar = "pathfinding" in args
     seed(4)
     curr_floor = 0
-    test_astar = "pathfinding" in args
     cursor_x, cursor_y = 0, 0
     pygame.init()
     pygame.font.init()
     pygame.display.set_caption("Goblins")
 
+    gamedata = GameData()
+
     screen = pygame.display.set_mode((800, 600))
     font = pygame.font.SysFont("Consolas", 16)
-
     floors = [
-        Map(map_width, map_height, MapGenPerlin, font, font_size, map_choices),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, map_choices),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, map_choices)
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.0),
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.4),
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.6)
     ]
     
     map3d = []
@@ -52,13 +52,10 @@ def main(args):
             new_floor = f.get_symbol_map()
             for i, line in enumerate(new_floor):
                 for j, ch in enumerate(line):
-                    each_floor = [not map3d[idx][i][j].is_none() for idx in range(0, lower_floor + 1)]
-                    if any(each_floor):
+                    each_floor_can_walk = [map3d[idx][i][j].can_walk() for idx in range(0, lower_floor + 1)]
+                    if any(each_floor_can_walk):
                         new_floor[i][j].set_ch(" ")
                         new_floor[i][j].set_surf(None)
-                    elif new_floor[i][j].is_none():
-                        new_floor[i][j].set_ch('.')
-                        new_floor[i][j].set_surf(font.render('.', True, [255, 255, 255]))
             map3d.append(new_floor)
             lower_floor += 1
 
@@ -84,27 +81,31 @@ def main(args):
             if end != None:
                 break
         path = mp.pathfind_from_a_to_b(start, end)
-        print(path)
 
     running = True
     dirty = True
     flip = False
     curr_time = 0
+    positions = []
     while running:
         if dirty:
             screen.fill((0,0,0))
             if test_astar:
                 temppath = path
                 while temppath != None:
+                    positions.append((temppath.x, temppath.y))
                     if temppath.z != curr_floor:
                         pygame.draw.rect(screen, [255, 0, 0], (temppath.x * font_with_padding, temppath.y * font_with_padding, 16, 16))
                     else:
-                        pygame.draw.rect(screen, [0, 255, 0], (temppath.x * font_with_padding, temppath.y * font_with_padding, 16, 16))
+                        pygame.draw.rect(screen, [0, 0, 255], (temppath.x * font_with_padding, temppath.y * font_with_padding, 16, 16))
                     temppath = temppath.prev
             x, y = 8, 0
-            for line in game_map:
-                for node in line:
-                    node.draw(screen, x, y, drawbg=not test_astar)
+            for idx_y, line in enumerate(game_map):
+                for idx_x, node in enumerate(line):
+                    if (idx_x, idx_y) in positions:
+                        node.draw(screen, x, y, drawbg=False)
+                    else:
+                        node.draw(screen, x, y)
                     x += font_with_padding
                 x = 8
                 y += font_with_padding
@@ -120,7 +121,7 @@ def main(args):
         else:
             if pygame.time.get_ticks() - curr_time > 500:
                 pygame.draw.rect(screen, [0, 255, 0], (cursor_x * font_with_padding, cursor_y * font_with_padding, 16, 16))
-                game_map[cursor_y][cursor_x].draw(screen, cursor_x * font_with_padding + 8, cursor_y * font_with_padding, drawbg=False)
+                game_map[cursor_y][cursor_x].draw(screen, cursor_x * font_with_padding + 8, cursor_y * font_with_padding)
                 flip = not flip
                 pygame.display.flip()
                 curr_time = pygame.time.get_ticks()
