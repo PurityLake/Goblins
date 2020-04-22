@@ -3,7 +3,7 @@
     "grass": {
         "char": ".",
         "color": [0, 255, 0],
-        "bgcolor": [0, 0, 0],
+        "bgcolor": [139, 69, 19],
         "walk": true,
         "chance": 7
     },

@@ -94,7 +94,7 @@ class MapPathfinding(object):
                         open_list.append((x + 1, y, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y][x+1]
-                    if down_node.can_walk:
+                    if down_node.can_walk():
                         open_list.append((x + 1, y, z - 1))
             else:
                 open_list.append((x + 1, y, z))
@@ -116,11 +116,11 @@ class MapPathfinding(object):
             if not node.can_walk():
                 if can_go_up:
                     up_node = self.area_map[z+1][y+1][x]
-                    if up_node.can_walk:
+                    if up_node.can_walk():
                         open_list.append((x, y + 1, z + 1))
                 if can_go_down:
                     down_node = self.area_map[z-1][y+1][x]
-                    if down_node.can_walk:
+                    if down_node.can_walk():
                         open_list.append((x, y + 1, z - 1))
             else:
                 open_list.append((x, y + 1, z))

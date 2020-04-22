@@ -101,6 +101,9 @@ class MapNode(object):
         self.halfsurfw = 0
         self.halfsurfh = 0
 
+    def get_bgcolor(self):
+        return self.bgcolor
+
     def set_bgcolor(self, r, g, b):
         self.bgcolor = (r, g, b)
     
@@ -113,6 +116,9 @@ class MapNode(object):
 
     def set_ch(self, ch):
         self.ch = ch
+
+    def set_can_walk(self, b):
+        self.walk = b
     
     def is_none(self):
         return self.ch == " " and self.surf == None

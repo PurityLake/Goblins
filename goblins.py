@@ -25,7 +25,7 @@ def move_cursor(screen, game_map, cursor_x, cursor_y, width, height, dx=0, dy=0)
 
 def main(args):
     test_astar = "pathfinding" in args
-    seed(4)
+    seed(5)
     curr_floor = 0
     cursor_x, cursor_y = 0, 0
     pygame.init()
@@ -33,13 +33,14 @@ def main(args):
     pygame.display.set_caption("Goblins")
 
     gamedata = GameData()
+    grass = gamedata["tiles"]["grass"]
 
     screen = pygame.display.set_mode((800, 600))
     font = pygame.font.SysFont("Consolas", 16)
     floors = [
         Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.0),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.4),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.6)
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.1),
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.2)
     ]
     
     map3d = []
@@ -52,10 +53,25 @@ def main(args):
             new_floor = f.get_symbol_map()
             for i, line in enumerate(new_floor):
                 for j, ch in enumerate(line):
-                    each_floor_can_walk = [map3d[idx][i][j].can_walk() for idx in range(0, lower_floor + 1)]
-                    if any(each_floor_can_walk):
-                        new_floor[i][j].set_ch(" ")
-                        new_floor[i][j].set_surf(None)
+                    node = new_floor[i][j]
+                    any_can_walk_below = any([map3d[idx][i][j].can_walk() for idx in range(0, lower_floor + 1)])
+                    if node.is_none():
+                        if not any_can_walk_below:
+                            node.set_ch(grass.char)
+                            node.set_surf(font.render(grass.char, True, grass.color))
+                            node.set_bgcolor(*grass.bgcolor)
+                            node.set_can_walk(True)
+                        if node.is_none():
+                            r, g, b = map3d[lower_floor][i][j].get_bgcolor()
+                            node.set_bgcolor(r / 2, g / 2, b / 2)
+                    else:
+                        if any_can_walk_below:
+                            node.set_ch(" ")
+                            node.set_surf(None)
+                            r, g, b = map3d[lower_floor][i][j].get_bgcolor()
+                            node.set_bgcolor(r / 2, g / 2, b / 2)
+                            node.set_can_walk(False)
+
             map3d.append(new_floor)
             lower_floor += 1
 
