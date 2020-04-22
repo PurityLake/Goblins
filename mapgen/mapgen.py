@@ -86,8 +86,45 @@ class MapGenPerlin(object):
 
         return perlin_noise
 
+class MapNode(object):
+    def __init__(self, ch, width, height, surf=None, bgcolor=(0, 0, 0)):
+        self.ch = ch
+        self.width = width
+        self.height = height
+        self.halfw = width / 2
+        self.halfh = height / 2
+        self.surf = surf
+        self.bgcolor = bgcolor
+        self.surfw = 0
+        self.surfh = 0
+        self.halfsurfw = 0
+        self.halfsurfh = 0
+
+    def set_bgcolor(self, r, g, b):
+        self.bgcolor = (r, g, b)
+    
+    def set_surf(self, surf):
+        self.surf = surf
+        if surf != None:
+            self.surfwidth, self.surfheight = surf.get_size()
+            self.halfsurfw = self.surfwidth / 2
+            self.halfsurfh = self.surfheight / 2
+
+    def set_ch(self, ch):
+        self.ch = ch
+    
+    def is_none(self):
+        return self.ch == " " and self.surf == None
+    
+    def draw(self, screen, x, y, drawbg=True):
+        if drawbg:
+            pygame.draw.rect(screen, self.bgcolor, (x - self.halfw, y, self.width, self.height))
+        if not self.is_none():
+            screen.blit(self.surf, (x - self.halfsurfw, y))
+
+
 class Map(object):
-    def __init__(self, width, height, gentype, font, map_choices):
+    def __init__(self, width, height, gentype, font, fontsize, map_choices):
         self.width = width
         self.height = height
         self.gentype = gentype
@@ -96,6 +133,7 @@ class Map(object):
         self.letters = []
         self.letters_rendered = []
         self.font = font
+        self.fontsize = fontsize
         self.map_choices = map_choices
         self._generate_map_data()
     
@@ -110,9 +148,11 @@ class Map(object):
                 v = pix % 255
                 line_to_draw.append((v, v, v))
                 if val > 0.5:
-                    line.append(None)
+                    #line.append(None)
+                    line.append(MapNode(" ", self.fontsize, self.fontsize))
                 else:
-                    line.append(random.choice(self.map_choices))
+                    #line.append(random.choice(self.map_choices))
+                    line.append(MapNode(random.choice(self.map_choices), self.fontsize, self.fontsize))
             self.letters.append(line)
             self.map_to_draw.append(line_to_draw)
         self.map_to_draw = np.array(self.map_to_draw)
@@ -120,7 +160,11 @@ class Map(object):
         for mc in self.map_choices:
             symbol_dict[mc] = self.font.render(mc, True, [255, 255, 255])
         symbol_dict[None] = None
-        self.letters_rendered = [[symbol_dict[i] for i in line] for line in self.letters]
+        for line in self.letters:
+            for i in line:
+                if i.ch != " ":
+                    i.set_surf(symbol_dict[i.ch])
+        #self.letters_rendered = [[symbol_dict[i.ch] for i in line] for line in self.letters]
     
     def draw_noise(self, screen, x=0, y=0):
         if pygame.get_init():
