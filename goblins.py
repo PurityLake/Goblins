@@ -1,11 +1,12 @@
+from ai import pathfinding
+import asyncio
+from mapdata.gamedata import GameData
+from mapgen.mapgen import Map, MapGenPerlin
+import math
 import pygame
 from random import choice, seed
-import math
 import sys
-from ai import pathfinding
-from mapgen.mapgen import Map, MapGenPerlin
 import time
-from mapdata.gamedata import GameData
 
 font_size = 16
 font_padding = 2
@@ -23,7 +24,10 @@ def move_cursor(screen, game_map, cursor_x, cursor_y, width, height, dx=0, dy=0)
     curr_time = pygame.time.get_ticks()
     return cursor_x, cursor_y
 
-def main(args):
+async def create_floor(width, height, gentype, font, fontsize, gamedata, chance_empty):
+    return Map(width, height, gentype, font, fontsize, gamedata, chance_empty)
+
+async def main(args):
     test_astar = "pathfinding" in args
     seed(666)
     curr_floor = 0
@@ -37,11 +41,11 @@ def main(args):
 
     screen = pygame.display.set_mode((800, 600))
     font = pygame.font.SysFont("Consolas", 16)
-    floors = [
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.0),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.5),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.7)
-    ]
+
+    floors = await asyncio.gather(
+        create_floor(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.0),
+        create_floor(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.5),
+        create_floor(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.7))
     
     map3d = []
     lower_floor = None
@@ -187,4 +191,4 @@ def main(args):
         first = False
 
 if __name__ == "__main__":
-    main([i.lower() for i in sys.argv[1:]])
+    asyncio.run(main([i.lower() for i in sys.argv[1:]]))
