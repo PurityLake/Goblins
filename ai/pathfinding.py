@@ -19,6 +19,8 @@ class PathfindingNode(object):
     prev: the previous node in the path
     """
 
+    __slots__ = "x", "y", "z", "cost", "prev", "gx"
+
     def __init__(self, pos, prev, cost):
         self.x, self.y, self.z = pos
         self.cost = cost
@@ -28,15 +30,18 @@ class PathfindingNode(object):
         else:
             self.gx = 0
         
-        def get_cost(self):
-            return self.cost + self.gx
+    def get_cost(self):
+        return self.cost + self.gx
+
+    def __str__(self):
+        return "({}, {}, {})".format(self.x, self.y, self.z)
     
     def __lt__(self, value):
-        return self.cost < value.cost
+        return self.get_cost() < value.get_cost()
 
     def __eq__(self, value):
         if type(value) == PathfindingNode:
-            return (self.x, self.y) == (value.x, value.y)
+            return (self.x, self.y, self.z) == (value.x, value.y, value.z)
         return False
 
 class MapPathfinding(object):
@@ -59,6 +64,9 @@ class MapPathfinding(object):
     pathfind_from_a_to_b: find the optimal path from a to b and returns a `PathfindNode`
                           containing the reverse path in a linked list i.e. from b to a.
     """
+
+    __slots__ = "width", "length", "height", "area_map"
+
     def __init__(self, area_map, width, length, height):
         self.width = width
         self.length = length
@@ -149,14 +157,11 @@ class MapPathfinding(object):
         open_set = [PathfindingNode(a, None, math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2) + math.pow(a[2] - b[2], 2)))]
         closed_set = []
         prev = current = open_set[0]
-        gx = 0
         running = True
-        while running and len(open_set) > 0 or current != None and (current.x, current.y) != b:
-            if (current.x, current.y, current.z) == b:
-                break
+        while running and len(open_set) > 0 or current != None and (current.x, current.y, current.z) != b:
             closed_set.append(current)
             new_nodes = self._get_open_nodes(current.x, current.y, current.z)
-            new_nodes_costs = [self._get_cost_of_node((node[0], node[1], node[2]), b) for node in new_nodes]
+            new_nodes_costs = [self._get_cost_of_node(node, b) for node in new_nodes]
             temp = []
             for n, c in zip(new_nodes, new_nodes_costs):
                 if c == 0:
@@ -165,17 +170,17 @@ class MapPathfinding(object):
                     running = False
                     break
                 if n in open_set:
-                    if n.get_cost() < current.get_cost():
-                        open_set.remove(n)
-                        temp.append(PathfindingNode(n, current, c))
+                    for o in open_set:
+                        if n == o:
+                            if n.get_cost() < o.get_cost():
+                                open_set.remove(o)
+                                temp.append(PathfindingNode(n, current, c))
+                                break
                 else:
                     temp.append(PathfindingNode(n, current, c))
             if running:
-                new_nodes = temp
-                new_nodes = filter(lambda x: x not in closed_set, new_nodes)
-                open_set.extend(new_nodes)
+                open_set.extend(filter(lambda x: x not in closed_set, temp))
                 open_set.remove(current)
                 prev = current
                 current = self._lowest_cost(current, open_set)
-                gx += 1
         return current

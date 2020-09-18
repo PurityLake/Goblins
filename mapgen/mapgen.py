@@ -134,12 +134,12 @@ class MapNode(object):
 
 
 class Map(object):
+    __slots__ = "width", "height", "gentype", "font", "fontsize", "gamedata", "chance_empty", "letters", "letters_rendered"
+    
     def __init__(self, width, height, gentype, font, fontsize, gamedata, chance_empty):
         self.width = width
         self.height = height
         self.gentype = gentype
-        self.map_to_draw = []
-        self.map_surface = None
         self.letters = []
         self.letters_rendered = []
         self.font = font
@@ -169,8 +169,6 @@ class Map(object):
                     t = tiles[random.choice(tile_types)]
                     line.append(MapNode(t.char, self.fontsize, self.fontsize, t.walk, bgcolor=t.bgcolor))
             self.letters.append(line)
-            self.map_to_draw.append(line_to_draw)
-        self.map_to_draw = np.array(self.map_to_draw)
         symbol_dict = dict()
         for mc in tile_types:
             tile = self.gamedata["tiles"][mc]
@@ -180,12 +178,6 @@ class Map(object):
             for i in line:
                 if i.ch != " ":
                     i.set_surf(symbol_dict[i.ch])
-    
-    def draw_noise(self, screen, x=0, y=0):
-        if pygame.get_init():
-            if self.map_surface == None:
-                self.map_surface = pygame.surfarray.make_surface(self.map_to_draw)
-            screen.blit(self.map_surface, (x, y))
     
     def get_symbol_map(self):
         return self.letters

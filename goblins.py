@@ -25,7 +25,7 @@ def move_cursor(screen, game_map, cursor_x, cursor_y, width, height, dx=0, dy=0)
 
 def main(args):
     test_astar = "pathfinding" in args
-    seed(5)
+    seed(666)
     curr_floor = 0
     cursor_x, cursor_y = 0, 0
     pygame.init()
@@ -39,8 +39,8 @@ def main(args):
     font = pygame.font.SysFont("Consolas", 16)
     floors = [
         Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.0),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.1),
-        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.2)
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.5),
+        Map(map_width, map_height, MapGenPerlin, font, font_size, gamedata, 0.7)
     ]
     
     map3d = []
@@ -84,14 +84,14 @@ def main(args):
         start, end = None, None
         for y, line in enumerate(game_map):
             for x, node in enumerate(line):
-                if node.ch != "#" and not node.is_none():
+                if node.can_walk():
                     start = (x, y, 0)
                     break
             if start != None:
                 break     
         for y, line in enumerate(game_map[::-1]):
             for x, node in enumerate(line[::-1]):
-                if node.ch != "#" and not node.is_none():
+                if node.can_walk():
                     end = (map_width - 1 - x, map_height - 1 - y, 0)
                     break
             if end != None:

@@ -1,5 +1,5 @@
 {
-    "types": ["grass", "stone"],
+    "types": ["grass", "stone", "iron ore"],
     "grass": {
         "char": ".",
         "color": [0, 255, 0],
@@ -13,5 +13,12 @@
         "bgcolor": [100, 100, 100],
         "walk": false,
         "chance": 3
+    },
+    "iron ore": {
+        "char": "##",
+        "color": [255, 100, 100],
+        "bgcolor": [100, 100, 100],
+        "walk": false,
+        "chance": 2
     }
 }

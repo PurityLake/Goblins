@@ -19,6 +19,9 @@ class GameData(object):
     get_tile_types: Gets the names of each individual tile so that the tiles can be
                     accessed much more easily
     """
+
+    __slots__ = "_tiles", "_tile_types"
+
     def __init__(self):
         self._tiles = dict()
         self._tile_types =[]

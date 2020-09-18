@@ -19,6 +19,8 @@ class TileData(object):
     chance: the likelihood of being picked by random.choice
     """
 
+    __slots__ = "char", "color", "bgcolor", "walk", "chance"
+
     def __init__(self, **kwargs):
         self.char = kwargs["char"]
         self.color = kwargs["color"]

@@ -7,6 +7,7 @@ instead of having it clutter another class.
 import json
 
 class JSONData(object):
+    __slots__ = "_filename", "_data", "_loaded"
     def __init__(self, filename):
         self._filename = filename
         self._data = None
